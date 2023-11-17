@@ -1,0 +1,145 @@
+---
+title: "R + Quarto: How we developed a pipeline to create >3500 html factsheets"
+author: Gabe Morrison
+format: 
+  revealjs:
+    menu: false 
+    embed-resources: true
+    theme: urbn.scss    
+    logo: images/urban-institute-logo-2.png
+    include-after-body: format-title-page.html
+title-slide-attributes: 
+    data-background-size: 25%,20%
+    data-background-position: 3% 85%,98% 83%
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+# Introduction and Background
+
+## Background: Who am I
+
+::: incremental
+1.  MS in Computational Analysis and Public Policy and BA in
+    Geographical Sciences from the University of Chicago
+:::
+
+::: incremental
+2.  Data Scientist at the Urban Institute
+:::
+
+## [Spatial Equity Data Tool](https://apps.urban.org/features/equity-data-tool/)
+
+![](images/sedt.png)
+
+## [Synthetic Data](https://www.urban.org/research/publication/synthetic-data-user-guide-and-infographic)
+
+![](images/synth_data.png)
+
+# Mobility Metrics
+
+## What Are the Mobility Metrics:
+
+![](images/mm_framework.png){fig-align="center"}
+
+## For each predictor, there are one or two metrics
+
+![](images/predictor_metric.png){fig-align="center"}
+
+## Problem Statement:
+
+::: incremental
+-   We want a way to display the information we've collected for every
+    county and "large" city
+    -   That is [$3183 + 486 = 3669$
+        factsheets]{style="color:#1696d2;"}!!
+:::
+
+::: incremental
+-   We may need to update these, so we want a pipeline
+:::
+
+## What do these factsheets look like?
+
+::: incremental
+They look like
+[this](https://upward-mobility.urban.org/sites/default/files/mobility-metrics-data-pages/999_county-pages/11001/index.html)
+:::
+
+# Technological Background:
+
+## purrr
+
+::: incremental
+![](images/purrr.png){height="350" fig-align="center"}
+
+``` md
+map(.x, .f, ..., .progress = FALSE)
+```
+:::
+
+## purrr example
+
+```{r, include=TRUE, echo = TRUE}
+library(tidyverse)
+
+
+example_function <- function(a, b) {
+  return(b/a)
+}
+  
+df <- data.frame(a = 1:5, b = 11:15)
+df
+```
+
+## purrr example
+```{r include=TRUE, echo = TRUE}
+pmap(.l = df, .f = example_function)
+```
+
+## furrr
+
+::: incremental
+-   Like purrr but parallelizes across cores
+-   Let's look at a nice example from [their
+    documentation](https://furrr.futureverse.org)
+:::
+
+## AWS:
+
+![](images/ec2.png){fig-align="center"}
+
+## EC2 Ideas:
+
+::: incremental
+-   Elastic Compute Cloud gives [a lot of
+    options](https://aws.amazon.com/ec2/instance-types/)
+    -   Pricing: c6a.32xlarge = \$4.82/hour
+-   Cloud computing costs are cheap relative to human labor:
+    -   No AWS: $5\:hours * 50/hour = \$250$
+    -   AWS: $4\:hours * 55/hour = \$220$
+-   R on AWS - R-specific docker image that is set up to run upon
+    spin-up
+:::
+
+# Let's look at some code!
+
+## Running in the Cloud
+
+::: incremental
+1.  Spin up large EC2 instance (c6a.32xlarge)
+2.  ssh into ec2 instance
+3.  Clone repo
+4.  Further configure instance:
+    1.  Update quarto
+    2.  Update packages and get folders set up
+5.  Call `render_standard_pages.R`
+6.  Copy to S3 with bash commands
+:::
+
+## Key Takeaway:
+
+::: incremental
+![](images/summary_meme.png){fig-align="center"}
+:::
